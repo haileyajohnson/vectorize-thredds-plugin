@@ -7,9 +7,9 @@ It leverages netCDF-Java's service provider mechanism for [`Enhancements`](https
 It can be used from the [THREDDS Data Server](https://docs.unidata.ucar.edu/tds/current/userguide/index.html) or directly from the [netCDF-Java library](https://docs.unidata.ucar.edu/netcdf-java/5.6/userguide/index.html).
 
 ### Deploying
-Step 1: jar the plugin with `mvn package`  
-Step 2: put the jar on your netCDF-Java classpath (see [Runtime Loading](https://docs.unidata.ucar.edu/netcdf-java/5.6/userguide/runtime_loading.html)).  
-Step 3: That's it, it should just work.
+ * Step 1: jar the plugin with `mvn package`
+ * Step 2: put the jar on your netCDF-Java classpath (see [Runtime Loading](https://docs.unidata.ucar.edu/netcdf-java/5.6/userguide/runtime_loading.html)). For a standard TDS instalation, this is the `/usr/local/tomcat/webapps/thredds##X.X/WEB-INF/lib/` folder.
+ * Step 3: That's it, it should just work.
 
 #### Requirements
 - netCDF-Java 5.6.1+ (or SHAPSHOT releases after 10/25/2024)
@@ -20,8 +20,13 @@ Step 3: That's it, it should just work.
 To use `Vectorize`, you will need to do the following:
 1) make two new variables in your dataset in the same `Group` as your `u` and `v`: one for vector magnitude and one for vector direction
 2) give these variables the same `Dimensions` as your `u` and `v` variables (`u` and `v` must share the same `Dimension` set)
-3) add an `Attribute` to your magnitude variable with `name="vectorize_mag"` and `value="{U var name}/{V var name}"
-4) add an `Attribute` to your direction variable with `name="vectorize_dir"` and `value="{U var name}/{V var name}"`.  
+3) add an `Attribute` to your magnitude variable with `name="vectorize_mag"` and `value="{U var name}/{V var name}/{to|from}"`
+4) add an `Attribute` to your direction variable with `name="vectorize_dir"` and `value="{U var name}/{V var name}/{to|from}"`
+
+The convention for the direction must be specified using "to" or "from":
+
+* "to": represent the direction the variable is going towards (oceanographic convention)
+* "from": represent the direction the variable is coming from (meteorological convention)
 
 These new variables will be read by NetCDF-Java (and the TDS) as the magnitude and directions of the provided `u` and `v` variables.
 
@@ -32,9 +37,9 @@ If you're using netCDF-Java directly in your project, you can add the new `Varia
 
   // add new variables with attributes
   builder.addVariable(magVar, DataType.FLOAT, "myDim")
-          .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, "myUVarName/myVVarName"));
+          .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, "myUVarName/myVVarName/to"));
   builder.addVariable(dirVar, DataType.FLOAT, "myDim")
-          .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, "myUVarName/myVVarName"));
+          .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, "myUVarName/myVVarName/to"));
 
   // write data to new vars
   NetcdfFormatWriter writer = builder.build()
@@ -49,13 +54,17 @@ If you're using the plugin in the TDS, you can add virtual variables to your dat
 ~~~xml
 <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="{myDatasetLocation}">
   ...
-  <variable name="magtitude" shape="{ same dims as U and V }" type="float">
-    <attribute name="vectorize_mag" value="myUVarName/myVVarName" />
+  <variable name="magnitude" shape="{ same dims as U and V }" type="float">
+    <attribute name="vectorize_mag" value="myUVarName/myVVarName/to" />
     <values start="0" incr="1" />
+    <attribute name="long_name" value="magnitude" />
+    <attribute name="units" value="m/s" />
   </variable>
   <variable name="direction" shape="{ same dims as U and V}" type="float">
-    <attribute name="vectorize_dir" value="myUVarName/myVVarName" />
+    <attribute name="vectorize_dir" value="myUVarName/myVVarName/to" />
     <values start="0" incr="1" />
+    <attribute name="long_name" value="direction" />
+    <attribute name="units" value="degrees" />
   </variable>
   ...
 </netcdf>

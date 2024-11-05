@@ -12,6 +12,8 @@ public abstract class Vectorize implements Enhancement {
 
     protected Variable uVar;
     protected Variable vVar;
+    private String convention;
+    protected float convention_offset;
     private int nDims;
     protected int[] shape;
     protected int[] n_dimensional_array;
@@ -22,6 +24,15 @@ public abstract class Vectorize implements Enhancement {
             String[] vars = att.getStringValue().split("/");
             this.uVar = var.getParentGroup().findVariableLocal(vars[0]);
             this.vVar = var.getParentGroup().findVariableLocal(vars[1]);
+
+            this.convention = vars[2];
+            if ("to".equals(this.convention)) {
+                this.convention_offset = 0.0f;
+            } else if ("from".equals(this.convention)) {
+                this.convention_offset = 180.0f;
+            } else {
+            throw new IllegalArgumentException("The convention must be either 'to' or 'from'.");
+            }
 
             this.shape = var.getShape();
             this.nDims = this.shape.length;

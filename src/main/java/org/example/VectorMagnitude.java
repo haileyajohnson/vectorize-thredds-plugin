@@ -32,7 +32,7 @@ public class VectorMagnitude extends Vectorize {
         try {
             double u_val = uVar.read(indexToCoords((int)num), this.n_dimensional_array).getDouble(0);
             double v_val = vVar.read(indexToCoords((int)num), this.n_dimensional_array).getDouble(0);
-            return Math.sqrt(v_val*v_val + u_val*u_val);
+            return Math.sqrt(u_val*u_val + v_val*v_val);
         } catch (Exception ex) {
             logger.error(ex);
             return Double.NaN;

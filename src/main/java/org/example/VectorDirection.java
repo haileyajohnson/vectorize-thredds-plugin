@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+
 public class VectorDirection extends Vectorize {
 
     private static Logger logger = LogManager.getLogger(VectorDirection.class);
@@ -31,7 +32,15 @@ public class VectorDirection extends Vectorize {
         try {
             double u_val = uVar.read(indexToCoords((int)num), this.n_dimensional_array).getDouble(0);
             double v_val = vVar.read(indexToCoords((int)num), this.n_dimensional_array).getDouble(0);
-            return Math.atan2(v_val, u_val);
+
+            // atan2(0, 0) is undefined, so just return 0
+            if (Math.sqrt(u_val*u_val + v_val*v_val) == 0.0f) {
+                return 0.0f;
+            }
+
+            // return values in the [0, 360) range
+            return ((Math.toDegrees(Math.atan2(u_val, v_val)) + 360.0f + this.convention_offset) % 360.0f);
+
         } catch (Exception ex) {
             logger.error(ex);
             return Double.NaN;

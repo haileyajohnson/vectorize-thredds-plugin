@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 public class TestPlugin {
     @TempDir
     static Path tempDir;
@@ -30,8 +31,16 @@ public class TestPlugin {
     private final static float[] vData = new float[]{ 1, Float.NaN, 1, 0, 1, 222.2f };
     private final static float[] expectedMags =
             new float[]{ Float.NaN, Float.NaN, 1, 1, (float)Math.sqrt(2), (float)Math.sqrt(uData[5]*uData[5] + vData[5]*vData[5])};
+
+    // direction with to convention: uvar/vvar/to
+    private final static String convention = "to";
     private final static float[] expectedDirs =
-            new float[]{ Float.NaN, Float.NaN, (float)Math.toRadians(90), 0, (float)Math.toRadians(45), (float)Math.atan2(vData[5], uData[5])};
+            new float[]{ Float.NaN, Float.NaN, 0, 90.0f, 45.0f, (float)(((Math.toDegrees(Math.atan2(uData[5], vData[5])) + 360.0f) % 360.0))};
+
+    // direction with from convention: uvar/vvar/from
+    // private final static String convention = "from";
+    // private final static float[] expectedDirs =
+    //         new float[]{ Float.NaN, Float.NaN, 180.0f, 270.0f, 225.0f, (float)(((Math.toDegrees(Math.atan2(uData[5], vData[5])) + 360.0f + 180.0f) % 360.0))};
 
     // variable names
     private final static String uVar = "u_var";
@@ -81,31 +90,31 @@ public class TestPlugin {
         builder.addVariable(uVar, DataType.FLOAT, dims1D);
         builder.addVariable(vVar, DataType.FLOAT, dims1D);
         builder.addVariable(magVar, DataType.FLOAT, dims1D)
-                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar + "/" + vVar));
+                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar + "/" + vVar + "/" + convention));
         builder.addVariable(dirVar, DataType.FLOAT, dims1D)
-                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar + "/" + vVar));
+                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar + "/" + vVar + "/" + convention));
 
         // add 2D variables
         builder.addVariable(uVar2D, DataType.FLOAT, dims2D);
         builder.addVariable(vVar2D, DataType.FLOAT, dims2D);
         builder.addVariable(magVar2D, DataType.FLOAT, dims2D)
-                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D));
+                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D + "/" + convention));
         builder.addVariable(dirVar2D, DataType.FLOAT, dims2D)
-                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D));
+                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D + "/" + convention));
 
         // add 3D variables
         builder.addVariable(uVar3D, DataType.FLOAT, dims3D);
         builder.addVariable(vVar3D, DataType.FLOAT, dims3D);
         builder.addVariable(magVar3D, DataType.FLOAT, dims3D)
-                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar3D + "/" + vVar3D));
+                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar3D + "/" + vVar3D + "/" + convention));
         builder.addVariable(dirVar3D, DataType.FLOAT, dims3D)
-                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar3D + "/" + vVar3D));
+                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar3D + "/" + vVar3D + "/" + convention));
 
         // add vars with mismatched dimensions
         builder.addVariable(magVarMismatch, DataType.FLOAT, "dim0")
-                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D));
+                .addAttribute(new Attribute(VectorMagnitude.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D + "/" + convention));
         builder.addVariable(dirVarMismatch, DataType.FLOAT, "dim1")
-                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D));
+                .addAttribute(new Attribute(VectorDirection.ATTRIBUTE_NAME, uVar2D + "/" + vVar2D + "/" + convention));
 
         // write data
         NetcdfFormatWriter writer = builder.build();
